@@ -1,29 +1,20 @@
-import db from '../database/db';
-import bcrypt from 'bcryptjs';
+import mongoose, { Schema, Document } from 'mongoose';
 
-export interface User {
-    id?: number;
+export interface IUser extends Document {
+    name: string;
     email: string;
     password?: string;
     role: string;
-    name: string;
-    store_id?: number;
+    createdAt: Date;
 }
 
-export const createUser = (user: User) => {
-    const { email, password, role, name, store_id } = user;
-    const hashedPassword = bcrypt.hashSync(password!, 10);
-    const stmt = db.prepare('INSERT INTO users (email, password, role, name, store_id) VALUES (?, ?, ?, ?, ?)');
-    const info = stmt.run(email, hashedPassword, role, name, store_id);
-    return info.lastInsertRowid;
-};
+const UserSchema: Schema = new Schema({
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String },
+    role: { type: String, required: true, default: 'user' },
+    store_id: { type: String },
+    createdAt: { type: Date, default: Date.now }
+});
 
-export const findUserByEmail = (email: string) => {
-    const stmt = db.prepare('SELECT * FROM users WHERE email = ?');
-    return stmt.get(email) as User | undefined;
-};
-
-export const findUserById = (id: number) => {
-    const stmt = db.prepare('SELECT * FROM users WHERE id = ?');
-    return stmt.get(id) as User | undefined;
-};
+export default mongoose.model<IUser>('User', UserSchema);

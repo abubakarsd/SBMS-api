@@ -1,15 +1,18 @@
-import Database from 'better-sqlite3';
-import fs from 'fs';
-import path from 'path';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 
-const dbPath = path.resolve(__dirname, '../../sbms.db');
-const db = new Database(dbPath);
+dotenv.config();
 
-export const initDB = () => {
-    const schemaPath = path.resolve(__dirname, 'schema.sql');
-    const schema = fs.readFileSync(schemaPath, 'utf-8');
-    db.exec(schema);
-    console.log('Database initialized');
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/sbms';
+
+export const initDB = async () => {
+    try {
+        await mongoose.connect(MONGO_URI);
+        console.log('Connected to MongoDB');
+    } catch (error) {
+        console.error('Error connecting to MongoDB:', error);
+        process.exit(1);
+    }
 };
 
-export default db;
+export default mongoose.connection;

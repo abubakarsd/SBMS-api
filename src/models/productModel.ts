@@ -1,33 +1,40 @@
-import db from '../database/db';
+import mongoose, { Schema, Document } from 'mongoose';
 
-export interface Product {
-    id?: number;
+export interface IProduct extends Document {
     name: string;
-    sku?: string;
-    image_url?: string;
+    sku: string;
+    category: string;
     price: number;
-    cost_price?: number;
-    stock_quantity: number;
-    category_id?: number;
-    low_stock_threshold?: number;
+    quantity: number;
+    minQuantity: number;
+    status: 'In Stock' | 'Low Stock' | 'Out of Stock';
+    lastUpdated: Date;
 }
 
-export const getAllProducts = () => {
-    const stmt = db.prepare('SELECT * FROM products');
-    return stmt.all() as Product[];
-};
+const ProductSchema: Schema = new Schema({
+    name: { type: String, required: true },
+    sku: { type: String, required: true, unique: true },
+    category: { type: String, required: true },
+    price: { type: Number, required: true },
+    quantity: { type: Number, required: true },
+    minQuantity: { type: Number, required: true, default: 5 },
+    status: {
+        type: String,
+        enum: ['In Stock', 'Low Stock', 'Out of Stock'],
+        default: 'In Stock'
+    },
+    lastUpdated: { type: Date, default: Date.now }
+});
 
-export const createProduct = (product: Product) => {
-    const { name, sku, image_url, price, cost_price, stock_quantity, category_id, low_stock_threshold } = product;
-    const stmt = db.prepare(`
-    INSERT INTO products (name, sku, image_url, price, cost_price, stock_quantity, category_id, low_stock_threshold)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-    const info = stmt.run(name, sku, image_url, price, cost_price, stock_quantity, category_id, low_stock_threshold);
-    return info.lastInsertRowid;
-};
+// Update status based on quantity before saving
+ProductSchema.pre('save', async function (this: IProduct) {
+    if (this.quantity <= 0) {
+        this.status = 'Out of Stock';
+    } else if (this.quantity <= this.minQuantity) {
+        this.status = 'Low Stock';
+    } else {
+        this.status = 'In Stock';
+    }
+});
 
-export const updateProductStock = (id: number, quantity: number) => {
-    const stmt = db.prepare('UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?');
-    stmt.run(quantity, id);
-};
+export default mongoose.model<IProduct>('Product', ProductSchema);
