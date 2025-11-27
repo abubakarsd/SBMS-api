@@ -7,6 +7,7 @@ import saleRoutes from './routes/saleRoutes';
 import repairRoutes from './routes/repairRoutes';
 import staffRoutes from './routes/staffRoutes';
 import payrollRoutes from './routes/payrollRoutes';
+import customerRoutes from './routes/customerRoutes';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use('/sales', saleRoutes);
 app.use('/repairs', repairRoutes);
 app.use('/staff', staffRoutes);
 app.use('/payroll', payrollRoutes);
+app.use('/customers', customerRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'SBMS API is running' });
