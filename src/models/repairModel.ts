@@ -1,17 +1,27 @@
 import mongoose, { Schema, Document } from 'mongoose';
+import crypto from 'crypto';
 
 export interface IRepair extends Document {
+  bookingKey: string;
   customerName: string;
+  phone: string;
   device: string;
   issue: string;
   status: 'Pending' | 'In Progress' | 'Completed' | 'Collected';
   cost: number;
   receivedDate: Date;
+  expectedDate: Date;
   completedDate?: Date;
 }
 
 const RepairSchema: Schema = new Schema({
+  bookingKey: {
+    type: String,
+    unique: true,
+    default: () => `RK-${crypto.randomBytes(4).toString('hex').toUpperCase()}`
+  },
   customerName: { type: String, required: true },
+  phone: { type: String, required: true },
   device: { type: String, required: true },
   issue: { type: String, required: true },
   status: {
@@ -21,6 +31,7 @@ const RepairSchema: Schema = new Schema({
   },
   cost: { type: Number, required: true },
   receivedDate: { type: Date, default: Date.now },
+  expectedDate: { type: Date, required: true },
   completedDate: { type: Date }
 });
 

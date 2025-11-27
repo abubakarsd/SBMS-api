@@ -8,12 +8,14 @@ export interface ISale extends Document {
     total: number;
     status: 'Pending' | 'Processing' | 'Ready' | 'Completed' | 'Cancelled';
     paymentStatus: 'Paid' | 'Unpaid' | 'Partial';
+    amountPaid: number;
+    amountDue: number;
 }
 
 const SaleSchema: Schema = new Schema({
     orderNumber: { type: String, required: true, unique: true },
     customer: { type: String, required: true },
-    orderDate: { type: String, required: true }, // Keeping as string to match frontend format for now, could be Date
+    orderDate: { type: String, required: true },
     items: { type: Number, required: true },
     total: { type: Number, required: true },
     status: {
@@ -26,6 +28,8 @@ const SaleSchema: Schema = new Schema({
         enum: ['Paid', 'Unpaid', 'Partial'],
         default: 'Unpaid'
     },
+    amountPaid: { type: Number, default: 0 },
+    amountDue: { type: Number, default: function () { return this.total; } },
     cashierId: { type: String }
 });
 
