@@ -5,6 +5,8 @@ export interface IRepair extends Document {
   bookingKey: string;
   customerName: string;
   phone: string;
+  customerEmail?: string;
+  customerId?: mongoose.Types.ObjectId;
   device: string;
   issue: string;
   status: 'Pending' | 'In Progress' | 'Completed' | 'Collected';
@@ -22,6 +24,8 @@ const RepairSchema: Schema = new Schema({
   },
   customerName: { type: String, required: true },
   phone: { type: String, required: true },
+  customerEmail: { type: String },
+  customerId: { type: Schema.Types.ObjectId, ref: 'Customer' },
   device: { type: String, required: true },
   issue: { type: String, required: true },
   status: {

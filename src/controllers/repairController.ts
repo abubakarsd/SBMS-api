@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Repair from '../models/repairModel';
+import Customer from '../models/customerModel';
 
 export const getRepairs = async (req: Request, res: Response) => {
     try {
@@ -25,8 +26,46 @@ export const getRepairByKey = async (req: Request, res: Response) => {
 
 export const createRepair = async (req: Request, res: Response) => {
     try {
-        const newRepair = new Repair(req.body);
+        const { customerName, customerPhone, customerEmail, ...repairData } = req.body;
+
+        let customer = null;
+
+        // Create or update customer for repair
+        if (customerPhone) {
+            customer = await Customer.findOne({ phone: customerPhone });
+
+            if (customer) {
+                // Update existing customer
+                customer.name = customerName || customer.name;
+                customer.email = customerEmail || customer.email;
+                customer.serviceType = customer.serviceType === 'Sale' ? 'Both' : 'Repair';
+                customer.serviceStatus = 'Pending';
+                customer.lastServiceDate = new Date();
+                await customer.save();
+            } else {
+                // Create new customer
+                customer = new Customer({
+                    name: customerName,
+                    phone: customerPhone,
+                    email: customerEmail,
+                    serviceType: 'Repair',
+                    serviceStatus: 'Pending',
+                    lastServiceDate: new Date()
+                });
+                await customer.save();
+            }
+        }
+
+        // Create repair record
+        const newRepair = new Repair({
+            ...repairData,
+            customerName,
+            customerPhone,
+            customerEmail,
+            customerId: customer?._id
+        });
         await newRepair.save();
+
         res.status(201).json({
             message: 'Repair booking created successfully',
             bookingKey: newRepair.bookingKey,

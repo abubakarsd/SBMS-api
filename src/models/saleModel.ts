@@ -3,6 +3,8 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface ISale extends Document {
     orderNumber: string;
     customer: string;
+    customerName?: string;
+    customerId?: mongoose.Types.ObjectId;
     orderDate: string;
     items: number;
     total: number;
@@ -15,6 +17,8 @@ export interface ISale extends Document {
 const SaleSchema: Schema = new Schema({
     orderNumber: { type: String, required: true, unique: true },
     customer: { type: String, required: true },
+    customerName: { type: String },
+    customerId: { type: Schema.Types.ObjectId, ref: 'Customer' },
     orderDate: { type: String, required: true },
     items: { type: Number, required: true },
     total: { type: Number, required: true },
