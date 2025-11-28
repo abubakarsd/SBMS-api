@@ -10,6 +10,9 @@ import payrollRoutes from './routes/payrollRoutes';
 import customerRoutes from './routes/customerRoutes';
 import supplierRoutes from './routes/supplierRoutes';
 import purchaseOrderRoutes from './routes/purchaseOrderRoutes';
+import settingsRoutes from './routes/settingsRoutes';
+import notificationRoutes from './routes/notificationRoutes';
+import userRoutes from './routes/userRoutes';
 
 const app = express();
 
@@ -25,6 +28,9 @@ app.use('/payroll', payrollRoutes);
 app.use('/customers', customerRoutes);
 app.use('/suppliers', supplierRoutes);
 app.use('/purchase-orders', purchaseOrderRoutes);
+app.use('/settings', settingsRoutes);
+app.use('/notifications', notificationRoutes);
+app.use('/users', userRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'SBMS API is running' });
