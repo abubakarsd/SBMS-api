@@ -8,6 +8,7 @@ export interface IProduct extends Document {
     quantity: number;
     minQuantity: number;
     status: 'In Stock' | 'Low Stock' | 'Out of Stock';
+    imageUrl?: string;
     lastUpdated: Date;
 }
 
@@ -17,12 +18,13 @@ const ProductSchema: Schema = new Schema({
     category: { type: String, required: true },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
-    minQuantity: { type: Number, required: true, default: 5 },
+    minQuantity: { type: Number, required: true },
     status: {
         type: String,
         enum: ['In Stock', 'Low Stock', 'Out of Stock'],
-        default: 'In Stock'
+        required: true
     },
+    imageUrl: { type: String },
     lastUpdated: { type: Date, default: Date.now }
 });
 
