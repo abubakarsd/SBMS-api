@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import Staff from '../models/staffModel';
-import User from '../models/userModel';
 
 export const getStaff = async (req: Request, res: Response) => {
     try {
@@ -13,26 +12,27 @@ export const getStaff = async (req: Request, res: Response) => {
 
 export const addStaff = async (req: Request, res: Response) => {
     try {
-        const { name, email, password, role, salary_type, base_salary, commission_rate, phone, paymentSchedule } = req.body;
+        const { name, email, phone, role, salary, paymentSchedule, status } = req.body;
 
-        // 1. Create User for login
-        const newUser = new User({ name, email, password, role });
-        await newUser.save();
-
-        // 2. Create Employee Record
+        // Create Staff Record (no User creation - staff are not system users)
         const newStaff = new Staff({
             name,
             email,
             phone: phone || 'N/A',
-            role,
-            salary: base_salary,
+            role: role || 'Cashier',
+            salary: salary || 0,
             paymentSchedule: paymentSchedule || 'Monthly',
+            status: status || 'Active',
             hireDate: new Date().toISOString().split('T')[0]
         });
         await newStaff.save();
 
-        res.status(201).json({ message: 'Staff member added' });
+        res.status(201).json({ message: 'Staff member added successfully', staff: newStaff });
     } catch (error: any) {
+        // Check for duplicate email
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Email already exists' });
+        }
         res.status(500).json({ message: 'Error adding staff', error: error.message });
     }
 };
