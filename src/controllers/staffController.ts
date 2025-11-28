@@ -36,3 +36,29 @@ export const addStaff = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error adding staff', error: error.message });
     }
 };
+
+export const updateStaff = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const updatedStaff = await Staff.findByIdAndUpdate(id, req.body, { new: true });
+        if (!updatedStaff) {
+            return res.status(404).json({ message: 'Staff member not found' });
+        }
+        res.json({ message: 'Staff member updated', staff: updatedStaff });
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error updating staff', error: error.message });
+    }
+};
+
+export const deleteStaff = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const deletedStaff = await Staff.findByIdAndDelete(id);
+        if (!deletedStaff) {
+            return res.status(404).json({ message: 'Staff member not found' });
+        }
+        res.json({ message: 'Staff member deleted' });
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error deleting staff', error: error.message });
+    }
+};
