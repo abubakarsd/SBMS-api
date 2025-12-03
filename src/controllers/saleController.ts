@@ -29,6 +29,15 @@ export const processSale = async (req: Request, res: Response) => {
                 customer.serviceType = customer.serviceType === 'Repair' ? 'Both' : 'Sale';
                 customer.lastServiceDate = new Date();
                 customer.totalPurchases += 1;
+
+                // Update credit balance if there is outstanding debt
+                if (saleData.paymentStatus === 'Unpaid' || saleData.paymentStatus === 'Partial') {
+                    const debt = saleData.amountDue || (saleData.total - (saleData.amountPaid || 0));
+                    if (debt > 0) {
+                        customer.creditBalance = (customer.creditBalance || 0) + debt;
+                    }
+                }
+
                 await customer.save();
             } else {
                 // Create new customer
@@ -39,7 +48,10 @@ export const processSale = async (req: Request, res: Response) => {
                     serviceType: 'Sale',
                     serviceStatus: 'Completed',
                     lastServiceDate: new Date(),
-                    totalPurchases: 1
+                    totalPurchases: 1,
+                    creditBalance: (saleData.paymentStatus === 'Unpaid' || saleData.paymentStatus === 'Partial')
+                        ? (saleData.amountDue || (saleData.total - (saleData.amountPaid || 0)))
+                        : 0
                 });
                 await customer.save();
             }

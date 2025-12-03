@@ -1,7 +1,7 @@
 import express from 'express';
 import { getProducts, addProduct, updateProduct, deleteProduct } from '../controllers/productController';
 import { authenticateToken } from '../middleware/authMiddleware';
-import { upload } from '../middleware/uploadMiddleware';
+import { upload } from '../middleware/upload';
 
 const router = express.Router();
 

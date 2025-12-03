@@ -32,10 +32,22 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
+const crypto_1 = __importDefault(require("crypto"));
 const RepairSchema = new mongoose_1.Schema({
+    bookingKey: {
+        type: String,
+        unique: true,
+        default: () => `RK-${crypto_1.default.randomBytes(4).toString('hex').toUpperCase()}`
+    },
     customerName: { type: String, required: true },
+    phone: { type: String, required: true },
+    customerEmail: { type: String },
+    customerId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Customer' },
     device: { type: String, required: true },
     issue: { type: String, required: true },
     status: {
@@ -45,6 +57,7 @@ const RepairSchema = new mongoose_1.Schema({
     },
     cost: { type: Number, required: true },
     receivedDate: { type: Date, default: Date.now },
+    expectedDate: { type: Date, required: true },
     completedDate: { type: Date }
 });
 exports.default = mongoose_1.default.model('Repair', RepairSchema);

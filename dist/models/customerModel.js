@@ -36,9 +36,22 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const CustomerSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String },
     phone: { type: String, required: true },
+    address: { type: String },
+    serviceType: {
+        type: String,
+        enum: ['Sale', 'Repair', 'Both'],
+        default: 'Sale'
+    },
+    serviceStatus: {
+        type: String,
+        enum: ['Active', 'Completed', 'Pending'],
+        default: 'Active'
+    },
+    lastServiceDate: { type: Date },
     totalPurchases: { type: Number, default: 0 },
+    creditBalance: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now }
 });
 exports.default = mongoose_1.default.model('Customer', CustomerSchema);

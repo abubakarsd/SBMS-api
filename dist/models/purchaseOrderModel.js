@@ -34,31 +34,23 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const ProductSchema = new mongoose_1.Schema({
-    name: { type: String, required: true },
-    sku: { type: String, required: true, unique: true },
-    category: { type: String, required: true },
-    price: { type: Number, required: true },
-    quantity: { type: Number, required: true },
-    minQuantity: { type: Number, required: true },
+const PurchaseOrderSchema = new mongoose_1.Schema({
+    poNumber: { type: String, required: true, unique: true },
+    supplier: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Supplier', required: true },
+    items: [{
+            product: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Product', required: true },
+            quantity: { type: Number, required: true, min: 1 },
+            unitCost: { type: Number, required: true, min: 0 }
+        }],
+    totalCost: { type: Number, required: true },
     status: {
         type: String,
-        enum: ['In Stock', 'Low Stock', 'Out of Stock'],
-        required: true
+        enum: ['Pending', 'Ordered', 'Received', 'Cancelled'],
+        default: 'Pending'
     },
-    imageUrl: { type: String },
-    lastUpdated: { type: Date, default: Date.now }
+    orderDate: { type: Date, default: Date.now },
+    expectedDate: { type: Date },
+    receivedDate: { type: Date },
+    notes: { type: String }
 });
-// Update status based on quantity before saving
-ProductSchema.pre('save', async function () {
-    if (this.quantity <= 0) {
-        this.status = 'Out of Stock';
-    }
-    else if (this.quantity <= this.minQuantity) {
-        this.status = 'Low Stock';
-    }
-    else {
-        this.status = 'In Stock';
-    }
-});
-exports.default = mongoose_1.default.model('Product', ProductSchema);
+exports.default = mongoose_1.default.model('PurchaseOrder', PurchaseOrderSchema);

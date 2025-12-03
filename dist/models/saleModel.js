@@ -37,7 +37,9 @@ const mongoose_1 = __importStar(require("mongoose"));
 const SaleSchema = new mongoose_1.Schema({
     orderNumber: { type: String, required: true, unique: true },
     customer: { type: String, required: true },
-    orderDate: { type: String, required: true }, // Keeping as string to match frontend format for now, could be Date
+    customerName: { type: String },
+    customerId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Customer' },
+    orderDate: { type: String, required: true },
     items: { type: Number, required: true },
     total: { type: Number, required: true },
     status: {
@@ -50,6 +52,8 @@ const SaleSchema = new mongoose_1.Schema({
         enum: ['Paid', 'Unpaid', 'Partial'],
         default: 'Unpaid'
     },
+    amountPaid: { type: Number, default: 0 },
+    amountDue: { type: Number, default: function () { return this.total; } },
     cashierId: { type: String }
 });
 exports.default = mongoose_1.default.model('Sale', SaleSchema);

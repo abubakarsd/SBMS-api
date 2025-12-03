@@ -34,31 +34,13 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
-const ProductSchema = new mongoose_1.Schema({
+const SupplierSchema = new mongoose_1.Schema({
     name: { type: String, required: true },
-    sku: { type: String, required: true, unique: true },
-    category: { type: String, required: true },
-    price: { type: Number, required: true },
-    quantity: { type: Number, required: true },
-    minQuantity: { type: Number, required: true },
-    status: {
-        type: String,
-        enum: ['In Stock', 'Low Stock', 'Out of Stock'],
-        required: true
-    },
-    imageUrl: { type: String },
-    lastUpdated: { type: Date, default: Date.now }
+    contactPerson: { type: String },
+    email: { type: String },
+    phone: { type: String },
+    address: { type: String },
+    products: [{ type: String }],
+    createdAt: { type: Date, default: Date.now }
 });
-// Update status based on quantity before saving
-ProductSchema.pre('save', async function () {
-    if (this.quantity <= 0) {
-        this.status = 'Out of Stock';
-    }
-    else if (this.quantity <= this.minQuantity) {
-        this.status = 'Low Stock';
-    }
-    else {
-        this.status = 'In Stock';
-    }
-});
-exports.default = mongoose_1.default.model('Product', ProductSchema);
+exports.default = mongoose_1.default.model('Supplier', SupplierSchema);

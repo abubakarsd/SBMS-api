@@ -54,6 +54,8 @@ const StaffSchema = new mongoose_1.Schema({
         enum: ['Active', 'Inactive'],
         default: 'Active'
     },
-    hireDate: { type: String, required: true }
+    hireDate: { type: String, required: true },
+    password: { type: String },
+    userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' }
 });
 exports.default = mongoose_1.default.model('Staff', StaffSchema);

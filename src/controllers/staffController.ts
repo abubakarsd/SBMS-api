@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import Staff from '../models/staffModel';
+import User from '../models/userModel';
+import bcrypt from 'bcryptjs';
 
 export const getStaff = async (req: Request, res: Response) => {
     try {
@@ -12,9 +14,24 @@ export const getStaff = async (req: Request, res: Response) => {
 
 export const addStaff = async (req: Request, res: Response) => {
     try {
-        const { name, email, phone, role, salary, paymentSchedule, status } = req.body;
+        const { name, email, phone, role, salary, paymentSchedule, status, password } = req.body;
 
-        // Create Staff Record (no User creation - staff are not system users)
+        // Create User if password is provided
+        let userId = null;
+        if (password) {
+            const hashedPassword = bcrypt.hashSync(password, 10);
+            const newUser = new User({
+                name,
+                email,
+                password: hashedPassword,
+                role: role || 'Cashier',
+                store_id: 'default_store' // Assuming a default store for now
+            });
+            await newUser.save();
+            userId = newUser._id;
+        }
+
+        // Create Staff Record
         const newStaff = new Staff({
             name,
             email,
@@ -23,7 +40,8 @@ export const addStaff = async (req: Request, res: Response) => {
             salary: salary || 0,
             paymentSchedule: paymentSchedule || 'Monthly',
             status: status || 'Active',
-            hireDate: new Date().toISOString().split('T')[0]
+            hireDate: new Date().toISOString().split('T')[0],
+            userId: userId
         });
         await newStaff.save();
 

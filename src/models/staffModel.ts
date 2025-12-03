@@ -9,6 +9,8 @@ export interface IStaff extends Document {
     paymentSchedule: 'Monthly' | 'Bi-weekly' | 'Weekly';
     status: 'Active' | 'Inactive';
     hireDate: string;
+    password?: string;
+    userId?: string;
 }
 
 const StaffSchema: Schema = new Schema({
@@ -31,7 +33,9 @@ const StaffSchema: Schema = new Schema({
         enum: ['Active', 'Inactive'],
         default: 'Active'
     },
-    hireDate: { type: String, required: true }
+    hireDate: { type: String, required: true },
+    password: { type: String },
+    userId: { type: Schema.Types.ObjectId, ref: 'User' }
 });
 
 export default mongoose.model<IStaff>('Staff', StaffSchema);
