@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import Sale from '../models/saleModel';
 import Customer from '../models/customerModel';
+import Product from '../models/productModel';
+import Notification from '../models/notificationModel';
 
 export const processSale = async (req: Request, res: Response) => {
     try {
@@ -54,6 +56,36 @@ export const processSale = async (req: Request, res: Response) => {
                         : 0
                 });
                 await customer.save();
+            }
+        }
+
+        // Deduct inventory and check for low stock alerts
+        if (saleData.products && Array.isArray(saleData.products)) {
+            for (const item of saleData.products) {
+                const product = await Product.findById(item.product);
+                if (product) {
+                    // Deduct quantity
+                    product.quantity -= item.quantity;
+
+                    // Update status based on new quantity
+                    if (product.quantity <= 0) {
+                        product.status = 'Out of Stock';
+                    } else if (product.quantity <= product.minQuantity) {
+                        product.status = 'Low Stock';
+
+                        // Create low stock notification
+                        await Notification.create({
+                            type: 'low_stock',
+                            message: `${product.name} is running low. Current stock: ${product.quantity}, Alert level: ${product.minQuantity}`,
+                            link: '/inventory',
+                            isRead: false
+                        });
+                    } else {
+                        product.status = 'In Stock';
+                    }
+
+                    await product.save();
+                }
             }
         }
 

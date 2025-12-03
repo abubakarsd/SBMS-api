@@ -6,6 +6,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSalesHistory = exports.processSale = void 0;
 const saleModel_1 = __importDefault(require("../models/saleModel"));
 const customerModel_1 = __importDefault(require("../models/customerModel"));
+const productModel_1 = __importDefault(require("../models/productModel"));
+const notificationModel_1 = __importDefault(require("../models/notificationModel"));
 const processSale = async (req, res) => {
     try {
         // @ts-ignore - user is attached by middleware
@@ -52,6 +54,34 @@ const processSale = async (req, res) => {
                         : 0
                 });
                 await customer.save();
+            }
+        }
+        // Deduct inventory and check for low stock alerts
+        if (saleData.products && Array.isArray(saleData.products)) {
+            for (const item of saleData.products) {
+                const product = await productModel_1.default.findById(item.product);
+                if (product) {
+                    // Deduct quantity
+                    product.quantity -= item.quantity;
+                    // Update status based on new quantity
+                    if (product.quantity <= 0) {
+                        product.status = 'Out of Stock';
+                    }
+                    else if (product.quantity <= product.minQuantity) {
+                        product.status = 'Low Stock';
+                        // Create low stock notification
+                        await notificationModel_1.default.create({
+                            type: 'low_stock',
+                            message: `${product.name} is running low. Current stock: ${product.quantity}, Alert level: ${product.minQuantity}`,
+                            link: '/inventory',
+                            isRead: false
+                        });
+                    }
+                    else {
+                        product.status = 'In Stock';
+                    }
+                    await product.save();
+                }
             }
         }
         // Create sale record

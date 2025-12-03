@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const payrollController_1 = require("../controllers/payrollController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
-router.post('/generate', authMiddleware_1.authenticateToken, payrollController_1.createPayroll);
+router.post('/', authMiddleware_1.authenticateToken, payrollController_1.createPayroll);
 router.get('/', authMiddleware_1.authenticateToken, payrollController_1.getPayroll);
+router.patch('/:id/status', authMiddleware_1.authenticateToken, payrollController_1.updatePayrollStatus);
 exports.default = router;

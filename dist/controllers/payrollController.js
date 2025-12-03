@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPayroll = exports.createPayroll = void 0;
+exports.updatePayrollStatus = exports.getPayroll = exports.createPayroll = void 0;
 const payrollModel_1 = __importDefault(require("../models/payrollModel"));
 const staffModel_1 = __importDefault(require("../models/staffModel"));
 const createPayroll = async (req, res) => {
@@ -43,3 +43,18 @@ const getPayroll = async (req, res) => {
     }
 };
 exports.getPayroll = getPayroll;
+const updatePayrollStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const updatedPayroll = await payrollModel_1.default.findByIdAndUpdate(id, { status }, { new: true });
+        if (!updatedPayroll) {
+            return res.status(404).json({ message: 'Payroll entry not found' });
+        }
+        res.json(updatedPayroll);
+    }
+    catch (error) {
+        res.status(500).json({ message: 'Error updating payroll status', error: error.message });
+    }
+};
+exports.updatePayrollStatus = updatePayrollStatus;
