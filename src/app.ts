@@ -18,6 +18,7 @@ import categoryRoutes from './routes/categoryRoutes';
 import brandRoutes from './routes/brandRoutes';
 import roleRoutes from './routes/roleRoutes';
 import imageRoutes from './routes/imageRoutes';
+import analyticsRoutes from './routes/analyticsRoutes';
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use('/categories', categoryRoutes);
 app.use('/brands', brandRoutes);
 app.use('/roles', roleRoutes);
 app.use('/images', imageRoutes);
+app.use('/analytics', analyticsRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'SBMS API is running' });

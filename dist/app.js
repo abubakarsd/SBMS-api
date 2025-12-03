@@ -21,6 +21,7 @@ const categoryRoutes_1 = __importDefault(require("./routes/categoryRoutes"));
 const brandRoutes_1 = __importDefault(require("./routes/brandRoutes"));
 const roleRoutes_1 = __importDefault(require("./routes/roleRoutes"));
 const imageRoutes_1 = __importDefault(require("./routes/imageRoutes"));
+const analyticsRoutes_1 = __importDefault(require("./routes/analyticsRoutes"));
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
@@ -40,6 +41,7 @@ app.use('/categories', categoryRoutes_1.default);
 app.use('/brands', brandRoutes_1.default);
 app.use('/roles', roleRoutes_1.default);
 app.use('/images', imageRoutes_1.default);
+app.use('/analytics', analyticsRoutes_1.default);
 app.get('/', (req, res) => {
     res.json({ message: 'SBMS API is running' });
 });
