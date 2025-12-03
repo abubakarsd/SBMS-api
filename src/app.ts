@@ -17,14 +17,12 @@ import userRoutes from './routes/userRoutes';
 import categoryRoutes from './routes/categoryRoutes';
 import brandRoutes from './routes/brandRoutes';
 import roleRoutes from './routes/roleRoutes';
+import imageRoutes from './routes/imageRoutes';
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-
-// Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 app.use('/auth', authRoutes);
 app.use('/products', productRoutes);
@@ -41,6 +39,7 @@ app.use('/users', userRoutes);
 app.use('/categories', categoryRoutes);
 app.use('/brands', brandRoutes);
 app.use('/roles', roleRoutes);
+app.use('/images', imageRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'SBMS API is running' });

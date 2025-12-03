@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
-const path_1 = __importDefault(require("path"));
 const authRoutes_1 = __importDefault(require("./routes/authRoutes"));
 const productRoutes_1 = __importDefault(require("./routes/productRoutes"));
 const saleRoutes_1 = __importDefault(require("./routes/saleRoutes"));
@@ -21,11 +20,10 @@ const userRoutes_1 = __importDefault(require("./routes/userRoutes"));
 const categoryRoutes_1 = __importDefault(require("./routes/categoryRoutes"));
 const brandRoutes_1 = __importDefault(require("./routes/brandRoutes"));
 const roleRoutes_1 = __importDefault(require("./routes/roleRoutes"));
+const imageRoutes_1 = __importDefault(require("./routes/imageRoutes"));
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)());
 app.use(express_1.default.json());
-// Serve static files from uploads directory
-app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));
 app.use('/auth', authRoutes_1.default);
 app.use('/products', productRoutes_1.default);
 app.use('/sales', saleRoutes_1.default);
@@ -41,6 +39,7 @@ app.use('/users', userRoutes_1.default);
 app.use('/categories', categoryRoutes_1.default);
 app.use('/brands', brandRoutes_1.default);
 app.use('/roles', roleRoutes_1.default);
+app.use('/images', imageRoutes_1.default);
 app.get('/', (req, res) => {
     res.json({ message: 'SBMS API is running' });
 });

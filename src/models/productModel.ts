@@ -5,6 +5,7 @@ export interface IProduct extends Document {
     sku: string;
     category: string;
     price: number;
+    cost?: number;
     quantity: number;
     minQuantity: number;
     status: 'In Stock' | 'Low Stock' | 'Out of Stock';
@@ -17,6 +18,7 @@ const ProductSchema: Schema = new Schema({
     sku: { type: String, required: true, unique: true },
     category: { type: String, required: true },
     price: { type: Number, required: true },
+    cost: { type: Number },
     quantity: { type: Number, required: true },
     minQuantity: { type: Number, required: true },
     status: {

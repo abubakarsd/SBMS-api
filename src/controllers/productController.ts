@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import Product from '../models/productModel';
+import { getGridFSBucket } from '../middleware/upload';
+import { Readable } from 'stream';
 
 export const getProducts = async (req: Request, res: Response) => {
     try {
@@ -14,9 +16,28 @@ export const addProduct = async (req: Request, res: Response) => {
     try {
         const productData = req.body;
 
-        // If image was uploaded, add the URL
+        // If image was uploaded, save to GridFS
         if (req.file) {
-            productData.imageUrl = `/uploads/products/${req.file.filename}`;
+            const bucket = getGridFSBucket();
+            const filename = `${Date.now()}-${req.file.originalname}`;
+
+            // Create readable stream from buffer
+            const readableStream = new Readable();
+            readableStream.push(req.file.buffer);
+            readableStream.push(null);
+
+            // Upload to GridFS
+            const uploadStream = bucket.openUploadStream(filename, {
+                metadata: { contentType: req.file.mimetype }
+            });
+
+            await new Promise((resolve, reject) => {
+                readableStream.pipe(uploadStream)
+                    .on('finish', resolve)
+                    .on('error', reject);
+            });
+
+            productData.imageUrl = `/images/${filename}`;
         }
 
         const newProduct = new Product(productData);
@@ -32,9 +53,28 @@ export const updateProduct = async (req: Request, res: Response) => {
         const { id } = req.params;
         const updateData = req.body;
 
-        // If new image was uploaded, update the URL
+        // If new image was uploaded, save to GridFS
         if (req.file) {
-            updateData.imageUrl = `/uploads/products/${req.file.filename}`;
+            const bucket = getGridFSBucket();
+            const filename = `${Date.now()}-${req.file.originalname}`;
+
+            // Create readable stream from buffer
+            const readableStream = new Readable();
+            readableStream.push(req.file.buffer);
+            readableStream.push(null);
+
+            // Upload to GridFS
+            const uploadStream = bucket.openUploadStream(filename, {
+                metadata: { contentType: req.file.mimetype }
+            });
+
+            await new Promise((resolve, reject) => {
+                readableStream.pipe(uploadStream)
+                    .on('finish', resolve)
+                    .on('error', reject);
+            });
+
+            updateData.imageUrl = `/images/${filename}`;
         }
 
         const updatedProduct = await Product.findByIdAndUpdate(id, updateData, { new: true });

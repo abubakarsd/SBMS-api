@@ -3,25 +3,35 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.upload = void 0;
+exports.upload = exports.getGridFSBucket = exports.initGridFS = void 0;
 const multer_1 = __importDefault(require("multer"));
+const mongodb_1 = require("mongodb");
 const path_1 = __importDefault(require("path"));
-const fs_1 = __importDefault(require("fs"));
-// Create uploads directory if it doesn't exist
-const uploadDir = path_1.default.join(__dirname, '../../uploads/products');
-if (!fs_1.default.existsSync(uploadDir)) {
-    fs_1.default.mkdirSync(uploadDir, { recursive: true });
-}
-// Configure storage
-const storage = multer_1.default.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, uploadDir);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, file.fieldname + '-' + uniqueSuffix + path_1.default.extname(file.originalname));
+let gfsBucket;
+// Initialize GridFS bucket
+const initGridFS = (mongoUri) => {
+    const client = new mongodb_1.MongoClient(mongoUri);
+    client.connect().then(() => {
+        const db = client.db();
+        gfsBucket = new mongodb_1.GridFSBucket(db, {
+            bucketName: 'productImages'
+        });
+        console.log('GridFS initialized');
+    }).catch(err => {
+        console.error('GridFS initialization error:', err);
+    });
+};
+exports.initGridFS = initGridFS;
+// Get GridFS bucket instance
+const getGridFSBucket = () => {
+    if (!gfsBucket) {
+        throw new Error('GridFS not initialized');
     }
-});
+    return gfsBucket;
+};
+exports.getGridFSBucket = getGridFSBucket;
+// Multer storage configuration for GridFS
+const storage = multer_1.default.memoryStorage(); // Store in memory temporarily
 // File filter for images only
 const fileFilter = (req, file, cb) => {
     const allowedTypes = /jpeg|jpg|png|webp/;

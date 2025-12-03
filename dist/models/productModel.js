@@ -39,6 +39,7 @@ const ProductSchema = new mongoose_1.Schema({
     sku: { type: String, required: true, unique: true },
     category: { type: String, required: true },
     price: { type: Number, required: true },
+    cost: { type: Number },
     quantity: { type: Number, required: true },
     minQuantity: { type: Number, required: true },
     status: {
