@@ -40,3 +40,16 @@ export const getPayroll = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching payroll history', error: error.message });
     }
 };
+export const updatePayrollStatus = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const updatedPayroll = await Payroll.findByIdAndUpdate(id, { status }, { new: true });
+        if (!updatedPayroll) {
+            return res.status(404).json({ message: 'Payroll entry not found' });
+        }
+        res.json(updatedPayroll);
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error updating payroll status', error: error.message });
+    }
+};

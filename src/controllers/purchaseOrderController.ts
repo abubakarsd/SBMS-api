@@ -55,10 +55,24 @@ export const updateStatus = async (req: Request, res: Response) => {
         // If status is changing to 'Received' and it wasn't already received
         if (status === 'Received' && po.status !== 'Received') {
             // Update stock for each item
+            // Update stock and cost for each item
             for (const item of po.items) {
-                await Product.findByIdAndUpdate(item.product, {
-                    $inc: { quantity: item.quantity }
-                });
+                const product = await Product.findById(item.product);
+                if (product) {
+                    const currentQty = product.quantity || 0;
+                    const currentCost = product.cost || 0;
+                    const newQty = item.quantity;
+                    const newCost = item.unitCost;
+
+                    // Calculate Weighted Average Cost
+                    const totalValue = (currentQty * currentCost) + (newQty * newCost);
+                    const totalQty = currentQty + newQty;
+                    const weightedAvgCost = totalQty > 0 ? totalValue / totalQty : newCost;
+
+                    product.quantity = totalQty;
+                    product.cost = Math.round(weightedAvgCost * 100) / 100; // Round to 2 decimals
+                    await product.save();
+                }
             }
             po.receivedDate = new Date();
         }
