@@ -105,7 +105,13 @@ export const processSale = async (req: Request, res: Response) => {
             customerCreated: !!customer
         });
     } catch (error: any) {
-        res.status(500).json({ message: 'Error processing sale', error: error.message });
+        console.error('Sale processing error:', error);
+        console.error('Request body:', JSON.stringify(req.body, null, 2));
+        res.status(500).json({
+            message: 'Error processing sale',
+            error: error.message,
+            details: error.stack
+        });
     }
 };
 
