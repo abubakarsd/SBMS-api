@@ -19,43 +19,79 @@ export const processSale = async (req: Request, res: Response) => {
 
         let customer = null;
 
-        // Only create/update customer if phone is provided
-        if (customerPhone) {
-            // Try to find existing customer by phone
-            customer = await Customer.findOne({ phone: customerPhone });
+        // Create/update customer if name is provided (phone is optional)
+        if (finalCustomerName && finalCustomerName !== 'Walk-in Customer') {
+            if (customerPhone) {
+                // If phone provided, use it as unique identifier
+                customer = await Customer.findOne({ phone: customerPhone });
 
-            if (customer) {
-                // Update existing customer
-                customer.name = finalCustomerName;
-                customer.email = customerEmail || customer.email;
-                customer.serviceType = customer.serviceType === 'Repair' ? 'Both' : 'Sale';
-                customer.lastServiceDate = new Date();
-                customer.totalPurchases += 1;
+                if (customer) {
+                    // Update existing customer
+                    customer.name = finalCustomerName;
+                    customer.email = customerEmail || customer.email;
+                    customer.serviceType = customer.serviceType === 'Repair' ? 'Both' : 'Sale';
+                    customer.lastServiceDate = new Date();
+                    customer.totalPurchases += 1;
 
-                // Update credit balance if there is outstanding debt
-                if (saleData.paymentStatus === 'Unpaid' || saleData.paymentStatus === 'Partial') {
-                    const debt = saleData.amountDue || (saleData.total - (saleData.amountPaid || 0));
-                    if (debt > 0) {
-                        customer.creditBalance = (customer.creditBalance || 0) + debt;
+                    // Update credit balance if there is outstanding debt
+                    if (saleData.paymentStatus === 'Unpaid' || saleData.paymentStatus === 'Partial') {
+                        const debt = saleData.amountDue || (saleData.total - (saleData.amountPaid || 0));
+                        if (debt > 0) {
+                            customer.creditBalance = (customer.creditBalance || 0) + debt;
+                        }
                     }
-                }
 
-                await customer.save();
+                    await customer.save();
+                } else {
+                    // Create new customer with phone
+                    customer = new Customer({
+                        name: finalCustomerName,
+                        phone: customerPhone,
+                        email: customerEmail,
+                        serviceType: 'Sale',
+                        serviceStatus: 'Completed',
+                        lastServiceDate: new Date(),
+                        totalPurchases: 1,
+                        creditBalance: (saleData.paymentStatus === 'Unpaid' || saleData.paymentStatus === 'Partial')
+                            ? (saleData.amountDue || (saleData.total - (saleData.amountPaid || 0)))
+                            : 0
+                    });
+                    await customer.save();
+                }
             } else {
-                // Create new customer
-                customer = new Customer({
-                    name: finalCustomerName,
-                    phone: customerPhone,
-                    email: customerEmail,
-                    serviceType: 'Sale',
-                    serviceStatus: 'Completed',
-                    lastServiceDate: new Date(),
-                    totalPurchases: 1,
-                    creditBalance: (saleData.paymentStatus === 'Unpaid' || saleData.paymentStatus === 'Partial')
-                        ? (saleData.amountDue || (saleData.total - (saleData.amountPaid || 0)))
-                        : 0
-                });
-                await customer.save();
+                // No phone provided - try to find by name or create new
+                customer = await Customer.findOne({ name: finalCustomerName, phone: { $exists: false } });
+
+                if (customer) {
+                    // Update existing customer without phone
+                    customer.serviceType = customer.serviceType === 'Repair' ? 'Both' : 'Sale';
+                    customer.lastServiceDate = new Date();
+                    customer.totalPurchases += 1;
+
+                    // Update credit balance if there is outstanding debt
+                    if (saleData.paymentStatus === 'Unpaid' || saleData.paymentStatus === 'Partial') {
+                        const debt = saleData.amountDue || (saleData.total - (saleData.amountPaid || 0));
+                        if (debt > 0) {
+                            customer.creditBalance = (customer.creditBalance || 0) + debt;
+                        }
+                    }
+
+                    await customer.save();
+                } else {
+                    // Create new customer without phone
+                    customer = new Customer({
+                        name: finalCustomerName,
+                        email: customerEmail,
+                        serviceType: 'Sale',
+                        serviceStatus: 'Completed',
+                        lastServiceDate: new Date(),
+                        totalPurchases: 1,
+                        creditBalance: (saleData.paymentStatus === 'Unpaid' || saleData.paymentStatus === 'Partial')
+                            ? (saleData.amountDue || (saleData.total - (saleData.amountPaid || 0)))
+                            : 0
+                    });
+                    await customer.save();
+                }
             }
         }
 
