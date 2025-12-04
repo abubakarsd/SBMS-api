@@ -26,13 +26,13 @@ export const getRepairByKey = async (req: Request, res: Response) => {
 
 export const createRepair = async (req: Request, res: Response) => {
     try {
-        const { customerName, customerPhone, customerEmail, ...repairData } = req.body;
+        const { customerName, phone, customerEmail, ...repairData } = req.body;
 
         let customer = null;
 
         // Create or update customer for repair
-        if (customerPhone) {
-            customer = await Customer.findOne({ phone: customerPhone });
+        if (phone) {
+            customer = await Customer.findOne({ phone });
 
             if (customer) {
                 // Update existing customer
@@ -46,7 +46,7 @@ export const createRepair = async (req: Request, res: Response) => {
                 // Create new customer
                 customer = new Customer({
                     name: customerName,
-                    phone: customerPhone,
+                    phone,
                     email: customerEmail,
                     serviceType: 'Repair',
                     serviceStatus: 'Pending',
@@ -60,7 +60,7 @@ export const createRepair = async (req: Request, res: Response) => {
         const newRepair = new Repair({
             ...repairData,
             customerName,
-            customerPhone,
+            phone,
             customerEmail,
             customerId: customer?._id
         });
