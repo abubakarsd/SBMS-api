@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface ICustomer extends Document {
     name: string;
     email?: string;
-    phone: string;
+    phone?: string;
     address?: string;
     serviceType: 'Sale' | 'Repair' | 'Both';
     serviceStatus: 'Active' | 'Completed' | 'Pending';
@@ -16,7 +16,7 @@ export interface ICustomer extends Document {
 const CustomerSchema: Schema = new Schema({
     name: { type: String, required: true },
     email: { type: String },
-    phone: { type: String, required: true },
+    phone: { type: String, required: false },
     address: { type: String },
     serviceType: {
         type: String,
