@@ -12,6 +12,9 @@ export const processSale = async (req: Request, res: Response) => {
         // Extract customer info from request
         const { customerName, customerPhone, customerEmail, ...saleData } = req.body;
 
+        // Normalize email - convert empty string to undefined to avoid duplicate key errors
+        const normalizedEmail = customerEmail && customerEmail.trim() !== '' ? customerEmail : undefined;
+
         // Use "Walk-in Customer" as default if no name provided
         const finalCustomerName = customerName && customerName.trim() !== ''
             ? customerName
@@ -28,7 +31,7 @@ export const processSale = async (req: Request, res: Response) => {
                 if (customer) {
                     // Update existing customer
                     customer.name = finalCustomerName;
-                    customer.email = customerEmail || customer.email;
+                    customer.email = normalizedEmail || customer.email;
                     customer.serviceType = customer.serviceType === 'Repair' ? 'Both' : 'Sale';
                     customer.lastServiceDate = new Date();
                     customer.totalPurchases += 1;
@@ -47,7 +50,7 @@ export const processSale = async (req: Request, res: Response) => {
                     customer = new Customer({
                         name: finalCustomerName,
                         phone: customerPhone,
-                        email: customerEmail,
+                        email: normalizedEmail,
                         serviceType: 'Sale',
                         serviceStatus: 'Completed',
                         lastServiceDate: new Date(),
@@ -81,7 +84,7 @@ export const processSale = async (req: Request, res: Response) => {
                     // Create new customer without phone
                     customer = new Customer({
                         name: finalCustomerName,
-                        email: customerEmail,
+                        email: normalizedEmail,
                         serviceType: 'Sale',
                         serviceStatus: 'Completed',
                         lastServiceDate: new Date(),
