@@ -16,16 +16,23 @@ export const addStaff = async (req: Request, res: Response) => {
     try {
         const { name, email, phone, role, salary, paymentSchedule, status, password } = req.body;
 
-        // Create User if password is provided
+        // Create User (Always create a user for staff)
+        const userPassword = password || 'staff123'; // Default password if none provided
+        const hashedPassword = bcrypt.hashSync(userPassword, 10);
+        
         let userId = null;
-        if (password) {
-            const hashedPassword = bcrypt.hashSync(password, 10);
-            const newUser = new User({
+        
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+        if (existingUser) {
+             userId = existingUser._id;
+        } else {
+             const newUser = new User({
                 name,
                 email,
                 password: hashedPassword,
                 role: role || 'Cashier',
-                store_id: 'default_store' // Assuming a default store for now
+                store_id: 'default_store' 
             });
             await newUser.save();
             userId = newUser._id;
@@ -45,7 +52,7 @@ export const addStaff = async (req: Request, res: Response) => {
         });
         await newStaff.save();
 
-        res.status(201).json({ message: 'Staff member added successfully', staff: newStaff });
+        res.status(201).json({ message: 'Staff member added successfully', staff: newStaff, userCreated: !existingUser });
     } catch (error: any) {
         // Check for duplicate email
         if (error.code === 11000) {

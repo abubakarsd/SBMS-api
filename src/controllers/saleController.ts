@@ -10,7 +10,7 @@ export const processSale = async (req: Request, res: Response) => {
         const cashier_id = req.user?.id || 'system';
 
         // Extract customer info from request
-        const { customerName, customerPhone, customerEmail, ...saleData } = req.body;
+        const { customerName, customerPhone, customerEmail, dueDate, ...saleData } = req.body;
 
         // Normalize email - convert empty string to undefined to avoid duplicate key errors
         const normalizedEmail = customerEmail && customerEmail.trim() !== '' ? customerEmail : undefined;
@@ -107,7 +107,8 @@ export const processSale = async (req: Request, res: Response) => {
             ...saleData,
             cashierId: cashier_id,
             customerName: finalCustomerName,
-            customerId: customer?._id
+            customerId: customer?._id,
+            dueDate: dueDate ? new Date(dueDate) : undefined
         });
         await newSale.save();
 

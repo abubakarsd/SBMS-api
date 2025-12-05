@@ -12,6 +12,7 @@ export interface ISale extends Document {
     paymentStatus: 'Paid' | 'Unpaid' | 'Partial';
     amountPaid: number;
     amountDue: number;
+    dueDate?: Date;
 }
 
 const SaleSchema: Schema = new Schema({
@@ -34,7 +35,8 @@ const SaleSchema: Schema = new Schema({
     },
     amountPaid: { type: Number, default: 0 },
     amountDue: { type: Number, default: function () { return this.total; } },
-    cashierId: { type: String }
+    cashierId: { type: String },
+    dueDate: { type: Date }
 });
 
 export default mongoose.model<ISale>('Sale', SaleSchema);
