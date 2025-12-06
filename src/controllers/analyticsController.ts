@@ -9,7 +9,7 @@ export const getAnalytics = async (req: Request, res: Response) => {
         const currentYear = new Date().getFullYear();
 
         // Get all sales
-        const allSales = await Sale.find().populate('products.product');
+        const allSales = await Sale.find();
 
         // Get all products
         const products = await Product.find();
@@ -37,9 +37,11 @@ export const getAnalytics = async (req: Request, res: Response) => {
         let currentMonthCOGS = 0;
         currentMonthSales.forEach((sale: any) => {
             (sale.products || []).forEach((item: any) => {
-                const product = products.find((p: any) => p._id.toString() === item.product.toString());
-                if (product && product.cost) {
-                    currentMonthCOGS += product.cost * item.quantity;
+                if (item.product) {
+                    const product = products.find((p: any) => p._id.toString() === item.product.toString());
+                    if (product && product.cost) {
+                        currentMonthCOGS += product.cost * item.quantity;
+                    }
                 }
             });
         });
@@ -70,9 +72,11 @@ export const getAnalytics = async (req: Request, res: Response) => {
             let cogs = 0;
             monthSales.forEach((sale: any) => {
                 (sale.products || []).forEach((item: any) => {
-                    const product = products.find((p: any) => p._id.toString() === item.product.toString());
-                    if (product && product.cost) {
-                        cogs += product.cost * item.quantity;
+                    if (item.product) {
+                        const product = products.find((p: any) => p._id.toString() === item.product.toString());
+                        if (product && product.cost) {
+                            cogs += product.cost * item.quantity;
+                        }
                     }
                 });
             });
