@@ -104,7 +104,7 @@ export const syncUsersToStaff = async (req: Request, res: Response) => {
                 syncedCount++;
             } else if (!existingStaff.userId) {
                 // Link existing staff to user if missing
-                existingStaff.userId = user._id as string;
+                existingStaff.userId = (user._id as any);
                 await existingStaff.save();
                 syncedCount++;
             }
