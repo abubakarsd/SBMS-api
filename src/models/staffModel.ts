@@ -19,7 +19,6 @@ const StaffSchema: Schema = new Schema({
     phone: { type: String, required: true },
     role: {
         type: String,
-        enum: ['Admin', 'Manager', 'Cashier', 'Technician', 'Engineer', 'Sales', 'Support'],
         required: true
     },
     salary: { type: Number, required: true },
