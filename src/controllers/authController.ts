@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import User from '../models/userModel';
+import Role from '../models/roleModel';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -13,8 +14,18 @@ export const register = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
+        // Normalize Role
+        let assignedRole = role || 'Cashier';
+        const roleDoc = await Role.findOne({ name: { $regex: new RegExp(`^${assignedRole}$`, 'i') } });
+        if (roleDoc) {
+            assignedRole = roleDoc.name;
+        } else {
+            // Fallback: Title Case if not found (e.g. "admin" -> "Admin")
+            assignedRole = assignedRole.charAt(0).toUpperCase() + assignedRole.slice(1).toLowerCase();
+        }
+
         const hashedPassword = bcrypt.hashSync(password, 10);
-        const newUser = new User({ email, password: hashedPassword, role, name, store_id });
+        const newUser = new User({ email, password: hashedPassword, role: assignedRole, name, store_id });
         await newUser.save();
 
         res.status(201).json({ message: 'User created', userId: newUser._id });

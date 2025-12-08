@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Staff from '../models/staffModel';
 import User from '../models/userModel';
+import Role from '../models/roleModel';
 import bcrypt from 'bcryptjs';
 
 export const getStaff = async (req: Request, res: Response) => {
@@ -22,6 +23,16 @@ export const addStaff = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Name and Email are required' });
         }
 
+        // Normalize Role
+        let assignedRole = role || 'Cashier';
+        const roleDoc = await Role.findOne({ name: { $regex: new RegExp(`^${assignedRole}$`, 'i') } });
+        if (roleDoc) {
+            assignedRole = roleDoc.name;
+        } else {
+            // Fallback: Title Case if not found
+            assignedRole = assignedRole.charAt(0).toUpperCase() + assignedRole.slice(1).toLowerCase();
+        }
+
         // Create User (Always create a user for staff)
         const userPassword = password || 'staff123'; // Default password if none provided
         const hashedPassword = bcrypt.hashSync(userPassword, 10);
@@ -38,7 +49,7 @@ export const addStaff = async (req: Request, res: Response) => {
                 name,
                 email,
                 password: hashedPassword,
-                role: role || 'Cashier',
+                role: assignedRole,
                 store_id: 'default_store'
             });
             await newUser.save();
@@ -57,7 +68,7 @@ export const addStaff = async (req: Request, res: Response) => {
             name,
             email,
             phone: phone || 'N/A',
-            role: role || 'Cashier',
+            role: assignedRole,
             salary: salary || 0,
             paymentSchedule: paymentSchedule || 'Monthly',
             status: status || 'Active',
@@ -88,12 +99,24 @@ export const syncUsersToStaff = async (req: Request, res: Response) => {
             const existingStaff = await Staff.findOne({ email: user.email });
 
             if (!existingStaff) {
+                // Determine role: Use existing user role (normalized) or default to Admin
+                let staffRole = 'Admin';
+                if (user.role) {
+                    // Attempt to normalize existing "bad" roles from user db
+                    const roleDoc = await Role.findOne({ name: { $regex: new RegExp(`^${user.role}$`, 'i') } });
+                    if (roleDoc) {
+                        staffRole = roleDoc.name;
+                    } else {
+                        staffRole = user.role.charAt(0).toUpperCase() + user.role.slice(1).toLowerCase();
+                    }
+                }
+
                 // Create missing staff record
                 const newStaff = new Staff({
                     name: user.name,
                     email: user.email,
                     phone: 'N/A', // Placeholder
-                    role: 'Admin', // Default to Admin for synced users (usually admin users) or map based on user role if available
+                    role: staffRole,
                     salary: 0,
                     paymentSchedule: 'Monthly',
                     status: 'Active',
@@ -120,6 +143,17 @@ export const syncUsersToStaff = async (req: Request, res: Response) => {
 export const updateStaff = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
+
+        // Normalize role if provided
+        if (req.body.role) {
+            const roleDoc = await Role.findOne({ name: { $regex: new RegExp(`^${req.body.role}$`, 'i') } });
+            if (roleDoc) {
+                req.body.role = roleDoc.name;
+            } else {
+                req.body.role = req.body.role.charAt(0).toUpperCase() + req.body.role.slice(1).toLowerCase();
+            }
+        }
+
         const updatedStaff = await Staff.findByIdAndUpdate(id, req.body, { new: true });
         if (!updatedStaff) {
             return res.status(404).json({ message: 'Staff member not found' });
