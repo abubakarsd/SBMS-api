@@ -48,3 +48,56 @@ export const deleteRole = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error deleting role', error: error.message });
     }
 };
+
+export const initRoles = async (req: Request, res: Response) => {
+    try {
+        const defaultRoles = [
+            {
+                name: 'Admin',
+                permissions: ['*'],
+                description: 'Full access to all system features'
+            },
+            {
+                name: 'Manager',
+                permissions: [
+                    'inventory.read', 'inventory.write',
+                    'sales.read', 'sales.write',
+                    'staff.read', 'staff.write',
+                    'pos.read', 'pos.write',
+                    'reports.read'
+                ],
+                description: 'Managerial access excluding global settings and dangerous deletions'
+            },
+            {
+                name: 'Cashier',
+                permissions: [
+                    'pos.read', 'pos.write',
+                    'sales.read',
+                    'inventory.read'
+                ],
+                description: 'Point of Sale and basic operational access'
+            },
+            {
+                name: 'Technician',
+                permissions: [
+                    'repairs.read', 'repairs.write',
+                    'sales.read'
+                ],
+                description: 'Access to repair module'
+            }
+        ];
+
+        let created = 0;
+        for (const role of defaultRoles) {
+            const exists = await Role.findOne({ name: role.name });
+            if (!exists) {
+                await new Role(role).save();
+                created++;
+            }
+        }
+
+        res.json({ message: `Role initialization complete. Created ${created} new roles.` });
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error initializing roles', error: error.message });
+    }
+};
