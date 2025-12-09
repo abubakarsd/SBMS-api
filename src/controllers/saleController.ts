@@ -22,36 +22,43 @@ export const processSale = async (req: Request, res: Response) => {
 
         let customer = null;
 
-        // Create/update customer if name is provided (phone is optional)
-        if (finalCustomerName && finalCustomerName !== 'Walk-in Customer') {
-            // Try to find existing customer by phone first (most reliable), then by name
-            if (customerPhone) {
-                customer = await Customer.findOne({ phone: customerPhone });
-            } else {
-                // No phone - try to find by name (less reliable, may match wrong customer)
-                customer = await Customer.findOne({ name: finalCustomerName });
+        // 1. Try to find existing customer by phone (primary identifier)
+        if (customerPhone && customerPhone.trim() !== '') {
+            customer = await Customer.findOne({ phone: customerPhone });
+        }
+
+        // 2. If not found by phone, try by name (only if specific name provided)
+        if (!customer && finalCustomerName !== 'Walk-in Customer') {
+            customer = await Customer.findOne({ name: finalCustomerName });
+        }
+
+        if (customer) {
+            // Update existing customer
+            // Only update name if it was specifically provided (not "Walk-in" override) and different
+            if (finalCustomerName !== 'Walk-in Customer') {
+                customer.name = finalCustomerName;
+            }
+            if (normalizedEmail) customer.email = normalizedEmail;
+
+            customer.serviceType = customer.serviceType === 'Repair' ? 'Both' : 'Sale';
+            customer.lastServiceDate = new Date();
+            customer.totalPurchases += 1;
+
+            // Update credit balance
+            if (saleData.paymentStatus === 'Unpaid' || saleData.paymentStatus === 'Partial') {
+                const debt = saleData.amountDue || (saleData.total - (saleData.amountPaid || 0));
+                if (debt > 0) {
+                    customer.creditBalance = (customer.creditBalance || 0) + debt;
+                }
             }
 
-            if (customer) {
-                // Update existing customer
-                customer.name = finalCustomerName;
-                if (normalizedEmail) customer.email = normalizedEmail;
-                if (customerPhone) customer.phone = customerPhone;
-                customer.serviceType = customer.serviceType === 'Repair' ? 'Both' : 'Sale';
-                customer.lastServiceDate = new Date();
-                customer.totalPurchases += 1;
+            await customer.save();
+        } else {
+            // Create new customer - ONLY if we have some identifying info (phone or specific name)
+            // If it's just "Walk-in Customer" with no phone, we generally don't create a profile unless we want to track anonymous stats
+            // But user wants "Customers adding", so maybe we DO create it if phone is there.
 
-                // Update credit balance if there is outstanding debt
-                if (saleData.paymentStatus === 'Unpaid' || saleData.paymentStatus === 'Partial') {
-                    const debt = saleData.amountDue || (saleData.total - (saleData.amountPaid || 0));
-                    if (debt > 0) {
-                        customer.creditBalance = (customer.creditBalance || 0) + debt;
-                    }
-                }
-
-                await customer.save();
-            } else {
-                // Create new customer
+            if (finalCustomerName !== 'Walk-in Customer' || (customerPhone && customerPhone.trim() !== '')) {
                 const customerData: any = {
                     name: finalCustomerName,
                     serviceType: 'Sale',
@@ -63,8 +70,7 @@ export const processSale = async (req: Request, res: Response) => {
                         : 0
                 };
 
-                // Only add phone and email if they have values
-                if (customerPhone) customerData.phone = customerPhone;
+                if (customerPhone && customerPhone.trim() !== '') customerData.phone = customerPhone;
                 if (normalizedEmail) customerData.email = normalizedEmail;
 
                 customer = new Customer(customerData);
