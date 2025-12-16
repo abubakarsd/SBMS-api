@@ -13,6 +13,18 @@ const UserSchema: Schema = new Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String },
     role: { type: String, required: true, default: 'user' },
+    phone: { type: String },
+    salary: { type: Number },
+    paymentSchedule: {
+        type: String,
+        enum: ['Monthly', 'Bi-weekly', 'Weekly'],
+    },
+    status: {
+        type: String,
+        enum: ['Active', 'Inactive'],
+        default: 'Active'
+    },
+    hireDate: { type: Date, default: Date.now },
     store_id: { type: String },
     createdAt: { type: Date, default: Date.now }
 });
