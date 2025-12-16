@@ -60,28 +60,31 @@ export const initRoles = async (req: Request, res: Response) => {
             {
                 name: 'Manager',
                 permissions: [
-                    'inventory.read', 'inventory.write',
-                    'sales.read', 'sales.write',
-                    'staff.read', 'staff.write',
-                    'pos.read', 'pos.write',
-                    'reports.read'
+                    'manage_products',
+                    'manage_sales',
+                    'manage_orders',
+                    'manage_customers',
+                    'manage_suppliers',
+                    'manage_users', // Updated from manage_staff
+                    'manage_payroll',
+                    'view_reports'
                 ],
                 description: 'Managerial access excluding global settings and dangerous deletions'
             },
             {
                 name: 'Cashier',
                 permissions: [
-                    'pos.read', 'pos.write',
-                    'sales.read',
-                    'inventory.read'
+                    'manage_sales',
+                    'manage_orders',
+                    'manage_customers'
                 ],
                 description: 'Point of Sale and basic operational access'
             },
             {
                 name: 'Technician',
                 permissions: [
-                    'repairs.read', 'repairs.write',
-                    'sales.read'
+                    'manage_repairs',
+                    'manage_sales'
                 ],
                 description: 'Access to repair module'
             }
