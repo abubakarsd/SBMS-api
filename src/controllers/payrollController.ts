@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
 import Payroll from '../models/payrollModel';
-import Staff from '../models/staffModel';
+import User from '../models/userModel';
 
 export const createPayroll = async (req: Request, res: Response) => {
     try {
         const { periodStart, periodEnd } = req.body;
         const period = `${periodStart} to ${periodEnd}`; // Simplified period string
 
-        // Fetch all active staff
-        const activeStaff = await Staff.find({ status: 'Active' });
+        // Fetch all active staff (users)
+        const activeStaff = await User.find({ status: 'Active' });
 
-        const payrollEntries = activeStaff.map(employee => ({
+        const payrollEntries = activeStaff.map((employee: any) => ({
             employeeName: employee.name,
             employeeEmail: employee.email,
             role: employee.role,
@@ -36,7 +36,7 @@ export const createSinglePayroll = async (req: Request, res: Response) => {
     try {
         const { staffId, period, status, paymentMethod } = req.body;
 
-        const staff = await Staff.findById(staffId);
+        const staff = await User.findById(staffId);
         if (!staff) {
             return res.status(404).json({ message: 'Staff member not found' });
         }

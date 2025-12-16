@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import Sale from '../models/saleModel';
 import Product from '../models/productModel';
-import Staff from '../models/staffModel';
+import User from '../models/userModel';
 
 export const getAnalytics = async (req: Request, res: Response) => {
     try {
@@ -14,8 +14,8 @@ export const getAnalytics = async (req: Request, res: Response) => {
         // Get all products
         const products = await Product.find();
 
-        // Get all staff
-        const staff = await Staff.find({ status: 'Active' });
+        // Get all staff (users)
+        const staff = await User.find({ status: 'Active' });
 
         // Filter current month sales
         const currentMonthSales = allSales.filter((sale: any) => {

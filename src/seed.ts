@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 import User from './models/userModel';
 import Product from './models/productModel';
 import Customer from './models/customerModel';
-import Staff from './models/staffModel';
+
 import Sale from './models/saleModel';
 
 dotenv.config();
@@ -18,7 +18,7 @@ const seed = async () => {
         // await User.deleteMany({});
         // await Product.deleteMany({});
         // await Customer.deleteMany({});
-        // await Staff.deleteMany({});
+        // await User.deleteMany({});
         // await Sale.deleteMany({});
 
         // Create Admin User
@@ -144,19 +144,19 @@ const seed = async () => {
             console.log(`${customers.length} customers seeded`);
         }
 
-        // Seed Staff
-        const staffCount = await Staff.countDocuments();
-        if (staffCount < 10) {
+        // Seed Staff (Users)
+        const staffCount = await User.countDocuments({ role: { $ne: 'Admin' } }); // Count non-admins
+        if (staffCount < 5) {
             const staff = [
-                { name: 'Alice Manager', email: 'alice@sbms.com', phone: '08011111111', role: 'Manager', salary: 250000, paymentSchedule: 'Monthly', status: 'Active', hireDate: new Date('2023-01-15') },
-                { name: 'Bob Cashier', email: 'bob@sbms.com', phone: '08022222222', role: 'Cashier', salary: 120000, paymentSchedule: 'Monthly', status: 'Active', hireDate: new Date('2023-03-20') },
-                { name: 'Carol Engineer', email: 'carol@sbms.com', phone: '08033333333', role: 'Engineer', salary: 180000, paymentSchedule: 'Monthly', status: 'Active', hireDate: new Date('2023-02-10') },
-                { name: 'Dave Sales', email: 'dave@sbms.com', phone: '08044444444', role: 'Sales', salary: 150000, paymentSchedule: 'Monthly', status: 'Active', hireDate: new Date('2023-04-05') },
-                { name: 'Eve Support', email: 'eve@sbms.com', phone: '08055555555', role: 'Support', salary: 130000, paymentSchedule: 'Monthly', status: 'Active', hireDate: new Date('2023-05-12') },
+                { name: 'Alice Manager', email: 'alice@sbms.com', password: bcrypt.hashSync('password123', 10), phone: '08011111111', role: 'Manager', salary: 250000, paymentSchedule: 'Monthly', status: 'Active', hireDate: new Date('2023-01-15') },
+                { name: 'Bob Cashier', email: 'bob@sbms.com', password: bcrypt.hashSync('password123', 10), phone: '08022222222', role: 'Cashier', salary: 120000, paymentSchedule: 'Monthly', status: 'Active', hireDate: new Date('2023-03-20') },
+                { name: 'Carol Engineer', email: 'carol@sbms.com', password: bcrypt.hashSync('password123', 10), phone: '08033333333', role: 'Engineer', salary: 180000, paymentSchedule: 'Monthly', status: 'Active', hireDate: new Date('2023-02-10') },
+                { name: 'Dave Sales', email: 'dave@sbms.com', password: bcrypt.hashSync('password123', 10), phone: '08044444444', role: 'Sales', salary: 150000, paymentSchedule: 'Monthly', status: 'Active', hireDate: new Date('2023-04-05') },
+                { name: 'Eve Support', email: 'eve@sbms.com', password: bcrypt.hashSync('password123', 10), phone: '08055555555', role: 'Support', salary: 130000, paymentSchedule: 'Monthly', status: 'Active', hireDate: new Date('2023-05-12') },
             ];
 
-            await Staff.insertMany(staff);
-            console.log(`${staff.length} staff members seeded`);
+            await User.insertMany(staff);
+            console.log(`${staff.length} staff (users) members seeded`);
         }
 
         // Seed Sales (for last 7 days)
