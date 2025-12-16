@@ -5,6 +5,12 @@ export interface IUser extends Document {
     email: string;
     password?: string;
     role: string;
+    phone?: string;
+    salary?: number;
+    paymentSchedule?: 'Monthly' | 'Bi-weekly' | 'Weekly';
+    status?: 'Active' | 'Inactive';
+    hireDate?: Date;
+    store_id?: string;
     createdAt: Date;
 }
 
