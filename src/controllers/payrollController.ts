@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Payroll from '../models/payrollModel';
 import User from '../models/userModel';
+import Repair from '../models/repairModel';
 
 export const createPayroll = async (req: Request, res: Response) => {
     try {
@@ -10,16 +11,38 @@ export const createPayroll = async (req: Request, res: Response) => {
         // Fetch all active staff (users)
         const activeStaff = await User.find({ status: 'Active' });
 
-        const payrollEntries = activeStaff.map((employee: any) => ({
-            employeeName: employee.name,
-            employeeEmail: employee.email,
-            role: employee.role,
-            baseSalary: employee.salary,
-            deductions: 0, // Default deductions
-            netPay: employee.salary, // Simplified net pay calculation
-            paymentMethod: employee.paymentSchedule === 'Weekly' ? 'Cash' : 'Bank Transfer', // Default logic
-            status: 'Pending',
-            period
+        const payrollEntries = await Promise.all(activeStaff.map(async (employee: any) => {
+            let commission = 0;
+
+            // Calculate commission if applicable
+            if (employee.role === 'Engineer' || employee.salaryType === 'Commission' || employee.salaryType === 'Both') {
+                const repairs = await Repair.find({
+                    engineerId: employee._id,
+                    status: { $in: ['Completed', 'Collected'] },
+                    completedDate: {
+                        $gte: new Date(periodStart),
+                        $lte: new Date(periodEnd)
+                    }
+                });
+
+                commission = repairs.reduce((sum: number, repair: any) => sum + (repair.engineerCommission || 0), 0);
+            }
+
+            const baseSalary = employee.salary || 0;
+            const netPay = baseSalary + commission;
+
+            return {
+                employeeName: employee.name,
+                employeeEmail: employee.email,
+                role: employee.role,
+                baseSalary,
+                commission,
+                deductions: 0,
+                netPay,
+                paymentMethod: employee.paymentSchedule === 'Weekly' ? 'Cash' : 'Bank Transfer',
+                status: 'Pending',
+                period
+            };
         }));
 
         if (payrollEntries.length > 0) {
@@ -46,6 +69,7 @@ export const createSinglePayroll = async (req: Request, res: Response) => {
             employeeEmail: staff.email,
             role: staff.role,
             baseSalary: staff.salary,
+            commission: 0, // Manual entry usually doesn't auto-calc commission unless specified
             deductions: 0,
             netPay: staff.salary,
             paymentMethod: paymentMethod || (staff.paymentSchedule === 'Weekly' ? 'Cash' : 'Bank Transfer'),

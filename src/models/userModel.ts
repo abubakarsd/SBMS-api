@@ -7,6 +7,7 @@ export interface IUser extends Document {
     role: string;
     phone?: string;
     salary?: number;
+    salaryType?: 'Fixed' | 'Commission' | 'Both';
     paymentSchedule?: 'Monthly' | 'Bi-weekly' | 'Weekly';
     status?: 'Active' | 'Inactive';
     hireDate?: Date;
@@ -21,6 +22,11 @@ const UserSchema: Schema = new Schema({
     role: { type: String, required: true, default: 'user' },
     phone: { type: String },
     salary: { type: Number },
+    salaryType: {
+        type: String,
+        enum: ['Fixed', 'Commission', 'Both'],
+        default: 'Fixed'
+    },
     paymentSchedule: {
         type: String,
         enum: ['Monthly', 'Bi-weekly', 'Weekly'],

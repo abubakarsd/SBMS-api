@@ -5,6 +5,7 @@ export interface IPayroll extends Document {
     employeeEmail: string;
     role: string;
     baseSalary: number;
+    commission: number;
     deductions: number;
     netPay: number;
     paymentMethod: 'Bank Transfer' | 'Cash' | 'Wallet';
@@ -17,6 +18,7 @@ const PayrollSchema: Schema = new Schema({
     employeeEmail: { type: String, required: true },
     role: { type: String, required: true },
     baseSalary: { type: Number, required: true },
+    commission: { type: Number, default: 0 },
     deductions: { type: Number, default: 0 },
     netPay: { type: Number, required: true },
     paymentMethod: {
