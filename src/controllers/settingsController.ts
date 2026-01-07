@@ -20,7 +20,7 @@ export const updateSettings = async (req: Request, res: Response) => {
         let settings = await Settings.findOne();
 
         if (!settings) {
-            settings = new Settings({ storeName, email, phone, address, currency, taxRate });
+            settings = new Settings({ storeName, email, phone, address, currency, taxRate, engineerPercentage: req.body.engineerPercentage ?? 0 });
         } else {
             settings.storeName = storeName;
             settings.email = email;
@@ -28,6 +28,7 @@ export const updateSettings = async (req: Request, res: Response) => {
             settings.address = address;
             settings.currency = currency;
             settings.taxRate = taxRate;
+            settings.engineerPercentage = req.body.engineerPercentage ?? 0;
         }
 
         await settings.save();

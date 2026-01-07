@@ -7,6 +7,7 @@ export interface ISettings extends Document {
     address: string;
     currency: string;
     taxRate: number;
+    engineerPercentage: number;
 }
 
 const SettingsSchema: Schema = new Schema({
@@ -15,7 +16,8 @@ const SettingsSchema: Schema = new Schema({
     phone: { type: String, required: true, default: '123-456-7890' },
     address: { type: String, required: true, default: '123 Main St' },
     currency: { type: String, required: true, default: 'NGN' },
-    taxRate: { type: Number, required: true, default: 0.1 }
+    taxRate: { type: Number, required: true, default: 0.1 },
+    engineerPercentage: { type: Number, required: true, default: 0 }
 });
 
 export default mongoose.model<ISettings>('Settings', SettingsSchema);

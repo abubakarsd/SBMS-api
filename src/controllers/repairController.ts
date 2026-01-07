@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import Repair from '../models/repairModel';
 import Customer from '../models/customerModel';
+import Settings from '../models/settingsModel';
 
 export const getRepairs = async (req: Request, res: Response) => {
     try {
@@ -56,13 +57,28 @@ export const createRepair = async (req: Request, res: Response) => {
             }
         }
 
+        // Calculate costs
+        const { partCost = 0, laborCost = 0, discount = 0, engineerId } = repairData;
+        const totalCost = (Number(partCost) + Number(laborCost)) - Number(discount);
+
+        // Calculate commission
+        let engineerCommission = 0;
+        if (engineerId) {
+            const settings = await Settings.findOne();
+            const percentage = settings?.engineerPercentage || 0;
+            engineerCommission = Number(laborCost) * (percentage / 100);
+        }
+
         // Create repair record
         const newRepair = new Repair({
             ...repairData,
             customerName,
             phone,
             customerEmail,
-            customerId: customer?._id
+            customerId: customer?._id,
+            cost: totalCost, // Legacy field
+            totalCost,
+            engineerCommission
         });
         await newRepair.save();
 
