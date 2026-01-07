@@ -10,6 +10,7 @@ export interface ISale extends Document {
     total: number;
     status: 'Pending' | 'Processing' | 'Ready' | 'Completed' | 'Cancelled';
     paymentStatus: 'Paid' | 'Unpaid' | 'Partial';
+    discount?: number;
     amountPaid: number;
     amountDue: number;
     dueDate?: Date;
@@ -33,6 +34,7 @@ const SaleSchema: Schema = new Schema({
         enum: ['Paid', 'Unpaid', 'Partial'],
         default: 'Unpaid'
     },
+    discount: { type: Number, default: 0 },
     amountPaid: { type: Number, default: 0 },
     amountDue: { type: Number, default: function () { return this.total; } },
     cashierId: { type: String },

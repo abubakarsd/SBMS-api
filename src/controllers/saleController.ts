@@ -135,11 +135,86 @@ export const processSale = async (req: Request, res: Response) => {
     }
 };
 
+
 export const getSalesHistory = async (req: Request, res: Response) => {
     try {
-        const sales = await Sale.find();
+        const sales = await Sale.find().sort({ orderDate: -1 });
         res.json(sales);
     } catch (error: any) {
         res.status(500).json({ message: 'Error fetching sales', error: error.message });
+    }
+};
+
+export const updateSaleStatus = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const sale = await Sale.findByIdAndUpdate(
+            id,
+            { status },
+            { new: true }
+        );
+
+        if (!sale) {
+            return res.status(404).json({ message: 'Sale not found' });
+        }
+
+        res.json(sale);
+    } catch (error: any) {
+        res.status(500).json({ message: 'Error updating sale status', error: error.message });
+    }
+};
+
+export const updatePaymentStatus = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { paymentStatus, amountPaid } = req.body;
+
+        const sale = await Sale.findById(id);
+        if (!sale) {
+            return res.status(404).json({ message: 'Sale not found' });
+        }
+
+        // Calculate delta for debt update
+        const oldAmountPaid = sale.amountPaid || 0;
+        const newAmountPaid = typeof amountPaid === 'number' ? amountPaid : oldAmountPaid;
+        const paymentDelta = newAmountPaid - oldAmountPaid;
+
+        // Update Sale
+        sale.paymentStatus = paymentStatus;
+        sale.amountPaid = newAmountPaid;
+        // Recalculate amount due
+        sale.amountDue = Math.max(0, sale.total - newAmountPaid);
+        await sale.save();
+
+        // Update Customer Credit Balance (Debt)
+        // If payment increased (delta > 0), debt should decrease.
+        // If payment decreased (delta < 0), debt should increase (rare case but logic holds).
+        if (sale.customer && paymentDelta !== 0) {
+            // Try updating by ID first, then name
+            let customerChanged = false;
+            if (sale.customerId) {
+                const customer = await Customer.findById(sale.customerId);
+                if (customer) {
+                    customer.creditBalance = Math.max(0, (customer.creditBalance || 0) - paymentDelta);
+                    await customer.save();
+                    customerChanged = true;
+                }
+            }
+
+            if (!customerChanged && sale.customer) {
+                const customer = await Customer.findOne({ name: sale.customer });
+                if (customer) {
+                    customer.creditBalance = Math.max(0, (customer.creditBalance || 0) - paymentDelta);
+                    await customer.save();
+                }
+            }
+        }
+
+        res.json(sale);
+    } catch (error: any) {
+        console.error("Update payment error:", error);
+        res.status(500).json({ message: 'Error updating payment status', error: error.message });
     }
 };
