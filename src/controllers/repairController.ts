@@ -58,8 +58,12 @@ export const createRepair = async (req: Request, res: Response) => {
         }
 
         // Calculate costs
-        const { partCost = 0, laborCost = 0, discount = 0, engineerId } = repairData;
+        const { partCost = 0, laborCost = 0, discount = 0 } = repairData;
         const totalCost = (Number(partCost) + Number(laborCost)) - Number(discount);
+
+        // Auto-assign engineer from logged-in user
+        // @ts-ignore - user is attached by middleware
+        const engineerId = req.user?.id;
 
         // Calculate commission
         let engineerCommission = 0;
@@ -78,6 +82,7 @@ export const createRepair = async (req: Request, res: Response) => {
             customerId: customer?._id,
             cost: totalCost, // Legacy field
             totalCost,
+            engineerId, // Set the authenticated user as engineer
             engineerCommission
         });
         await newRepair.save();
